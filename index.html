@@ -289,13 +289,14 @@
 
   /* ============ 08 CUSTOM ============ */
   .customflow{display:flex;flex-direction:column;gap:0;align-items:center;margin-top:2rem}
-  .customflow .row{display:flex;align-items:center;gap:1.2rem;width:min(640px,100%);
+  .customflow .row{display:flex;flex-direction:column;align-items:center;gap:.5rem;width:min(640px,100%);
     opacity:0;transform:translateY(18px);transition:all .45s ease}
   .customflow .row.show{opacity:1;transform:none}
-  .customflow .ann{width:min(300px,48%);font-family:var(--mono);font-weight:700;text-align:center;
-    background:#fff;border:2px solid var(--blue);border-radius:12px;padding:.8rem 1rem;font-size:clamp(.85rem,1.6vw,1.05rem)}
-  .customflow .desc{flex:1;font-weight:600;color:var(--ink-soft)}
-  .customflow .down{color:var(--blue);font-weight:900;font-size:1.3rem;margin:.4rem 0 .4rem 0;width:min(300px,48%);text-align:center}
+  .customflow .ann{max-width:100%;font-family:var(--mono);font-weight:700;text-align:center;
+    background:#fff;border:2px solid var(--blue);border-radius:12px;padding:.8rem 1.4rem;font-size:clamp(.85rem,1.6vw,1.05rem);
+    word-break:break-word}
+  .customflow .desc{font-weight:600;color:var(--ink-soft);text-align:center}
+  .customflow .down{color:var(--blue);font-weight:900;font-size:1.3rem;margin:.4rem 0;text-align:center}
 
   /* ============ 09 EXCLUDE ============ */
   .excl{display:grid;grid-template-columns:1.1fr .9fr;gap:2.4rem;align-items:center;margin-top:2rem}
