@@ -96,16 +96,7 @@
     display:flex;align-items:center;justify-content:center;transition:all .2s;
   }
   .navbtns button:hover{border-color:var(--blue);color:var(--blue)}
-  .presbtn{
-    position:fixed;top:18px;right:20px;z-index:60;
-    border:1.5px solid var(--line);background:rgba(255,255,255,.92);
-    padding:.5rem 1rem;border-radius:999px;cursor:pointer;
-    font-weight:700;font-size:.85rem;letter-spacing:.04em;color:var(--ink);
-    box-shadow:var(--shadow);transition:all .2s;
-  }
-  .presbtn:hover{border-color:var(--blue);color:var(--blue)}
-  body.present .progress,body.present .presbtn{opacity:0;pointer-events:none}
-  body.present{--scale-hint:1}
+
 
   /* ============ BUTTONS ============ */
   .btn{
@@ -275,19 +266,6 @@
     background:var(--ink);color:var(--yellow);padding:.25rem .7rem;border-radius:6px;vertical-align:middle;margin-left:.6rem;
   }
 
-  /* ============ 06 BEAN ============ */
-  .beanflow{display:flex;align-items:center;justify-content:center;gap:1.2rem;margin-top:2rem;flex-wrap:wrap}
-  .beanstep{background:#fff;border:2px solid var(--ink);border-radius:16px;padding:1.2rem 1.6rem;
-    text-align:center;font-weight:700;font-size:1.1rem;box-shadow:var(--shadow);
-    opacity:0;transform:translateY(20px);transition:all .5s ease;min-width:170px}
-  .beanstep.show{opacity:1;transform:none}
-  .beanstep small{display:block;font-weight:500;color:var(--ink-soft);font-size:.9rem;margin-top:.2rem}
-  .beanarrow{color:var(--blue);font-size:1.6rem;font-weight:900}
-  .vsnote{
-    display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2.2rem;
-  }
-  .vsnote .card{padding:1.6rem 1.8rem}
-  .vsnote .card h3{margin-bottom:.6rem}
   .bigX{color:var(--red);font-weight:900}
 
   /* ============ 07 CONDITIONALS ============ */
@@ -364,12 +342,10 @@
 
   /* ============ RESPONSIVE ============ */
   @media (max-width:900px){
-    .vs,.split,.condgrid,.vsnote,.excl,.debugwrap{grid-template-columns:1fr}
+    .vs,.split,.condgrid,.excl,.debugwrap{grid-template-columns:1fr}
     .demo{grid-template-columns:1fr}
     .engine{min-width:0}
     .recap{grid-template-columns:1fr 1fr}
-    .beanarrow{transform:rotate(90deg)}
-    .beanflow{flex-direction:column}
   }
   @media (max-width:560px){.recap{grid-template-columns:1fr}.progress{bottom:12px;padding:.45rem .8rem}}
   @media (prefers-reduced-motion:reduce){
@@ -379,7 +355,7 @@
 </head>
 <body>
 
-<button class="presbtn" id="presBtn">▶ Presentation Mode</button>
+
 
 <!-- ============ SECTION 01 — HOOK ============ -->
 <section class="slide" id="s1">
@@ -514,41 +490,11 @@
   </div>
 </section>
 
-<!-- ============ SECTION 06 — SPRING BEAN ============ -->
-<section class="slide alt" id="s6">
-  <div class="wrap">
-    <div class="kicker">Section 06 · Building blocks</div>
-    <h2>What is a <span class="hl">Spring Bean</span>?</h2>
-    <div class="vsnote">
-      <div class="card">
-        <h3>Normally, we create objects ourselves</h3>
-        <div class="codeblock" style="margin-top:.8rem"><span class="kw">Car</span> car = <span class="kw">new</span> <span class="ann">Car</span>();</div>
-        <p style="margin-top:.8rem;color:var(--ink-soft)">You call <b>new</b>, you manage the object's life.</p>
-      </div>
-      <div class="card">
-        <h3>With Spring, the container does it</h3>
-        <div class="beanflow" style="margin-top:.4rem;flex-direction:column;align-items:stretch">
-          <div class="beanstep show" style="opacity:1;transform:none">Spring Container<small>the manager</small></div>
-          <div class="beanarrow" style="transform:rotate(90deg);text-align:center">→</div>
-          <div class="beanstep show" style="opacity:1;transform:none">Creates the object<small>instead of your code</small></div>
-          <div class="beanarrow" style="transform:rotate(90deg);text-align:center">→</div>
-          <div class="beanstep show" style="opacity:1;transform:none">Manages the object<small>lifecycle included</small></div>
-          <div class="beanarrow" style="transform:rotate(90deg);text-align:center">→</div>
-          <div class="beanstep show" style="opacity:1;transform:none;background:#E7F6EE;border-color:var(--green)">Spring Bean<small>the managed object</small></div>
-        </div>
-      </div>
-    </div>
-    <p class="center" style="text-align:center;margin-top:1.8rem;font-size:1.15rem;max-width:56ch;margin-left:auto;margin-right:auto">
-      A <b>Spring Bean</b> is an object <b>created and managed by the Spring container</b>.
-      The object still exists — the difference is <span class="hl">who manages its creation</span>: Spring, not you.
-    </p>
-  </div>
-</section>
 
-<!-- ============ SECTION 07 — CONDITIONALS ============ -->
-<section class="slide" id="s7">
+<!-- ============ SECTION 06 — CONDITIONALS ============ -->
+<section class="slide" id="s6">
   <div class="wrap">
-    <div class="kicker">Section 07 · Not blind</div>
+    <div class="kicker">Section 06 · Not blind</div>
     <h2 class="center" style="text-align:center">Spring Boot Doesn’t Configure <span class="hl">Everything Blindly</span></h2>
     <div class="condgrid">
       <div class="card cond">
@@ -578,10 +524,10 @@
   </div>
 </section>
 
-<!-- ============ SECTION 08 — CUSTOM AUTO-CONFIG ============ -->
-<section class="slide alt" id="s8">
+<!-- ============ SECTION 07 — CUSTOM AUTO-CONFIG ============ -->
+<section class="slide alt" id="s7">
   <div class="wrap center">
-    <div class="kicker" style="justify-content:center">Section 08 · Your own rules</div>
+    <div class="kicker" style="justify-content:center">Section 07 · Your own rules</div>
     <h2>Writing a <span class="hl">Custom Auto-Configuration</span></h2>
     <p class="lead" style="margin:.8rem auto 0">Just three annotations — each one answers one question.</p>
     <div class="customflow" id="customFlow">
@@ -594,10 +540,10 @@
   </div>
 </section>
 
-<!-- ============ SECTION 09 — EXCLUDE ============ -->
-<section class="slide" id="s9">
+<!-- ============ SECTION 08 — EXCLUDE ============ -->
+<section class="slide" id="s8">
   <div class="wrap">
-    <div class="kicker">Section 09 · Developer control</div>
+    <div class="kicker">Section 08 · Developer control</div>
     <h2>You can always say <span class="hl">“no, thanks”</span></h2>
     <div class="excl">
       <div class="codeblock"><span class="ann">@SpringBootApplication</span>(
@@ -621,10 +567,10 @@
   </div>
 </section>
 
-<!-- ============ SECTION 10 — DEBUG ============ -->
-<section class="slide alt" id="s10">
+<!-- ============ SECTION 09 — DEBUG ============ -->
+<section class="slide alt" id="s9">
   <div class="wrap">
-    <div class="kicker">Section 10 · Look under the hood</div>
+    <div class="kicker">Section 09 · Look under the hood</div>
     <h2>See it think: <span class="hl mono" style="font-size:.85em">--debug</span></h2>
     <div class="debugwrap">
       <div>
@@ -643,10 +589,10 @@
   </div>
 </section>
 
-<!-- ============ SECTION 11 — RECAP ============ -->
-<section class="slide" id="s11">
+<!-- ============ SECTION 10 — RECAP ============ -->
+<section class="slide" id="s10">
   <div class="wrap center">
-    <div class="kicker" style="justify-content:center">Section 11 · Recap</div>
+    <div class="kicker" style="justify-content:center">Section 10 · Recap</div>
     <h2>Four things to remember</h2>
     <div class="recap">
       <div class="card rcard"><div class="num">01</div><h3>Dependencies</h3><p>Spring Boot checks what libraries are available on the classpath.</p></div>
@@ -665,7 +611,7 @@
 <!-- ============ PROGRESS / NAV ============ -->
 <nav class="progress" aria-label="Section progress">
   <div class="navbtns"><button id="prevBtn" aria-label="Previous section">↑</button><button id="nextBtn" aria-label="Next section">↓</button></div>
-  <div class="counter"><span id="curNum">01</span> / 11</div>
+  <div class="counter"><span id="curNum">01</span> / 10</div>
   <div class="dots" id="dots"></div>
 </nav>
 
@@ -716,21 +662,14 @@
   var KEYS_PREV = ["ArrowUp","PageUp","ArrowLeft"];
   document.addEventListener("keydown", function(e){
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
-    if (e.key === "Escape" && document.body.classList.contains("present")){ togglePresent(); return; }
-    if (e.key.toLowerCase() === "p"){ togglePresent(); return; }
+
     if (KEYS_NEXT.indexOf(e.key) > -1){ e.preventDefault(); goTo(currentIndex()+1); }
     else if (KEYS_PREV.indexOf(e.key) > -1){ e.preventDefault(); goTo(currentIndex()-1); }
     else if (e.key === "Home"){ e.preventDefault(); goTo(0); }
     else if (e.key === "End"){ e.preventDefault(); goTo(sections.length-1); }
   });
 
-  /* ---------- PRESENTATION MODE ---------- */
-  var presBtn = $("#presBtn");
-  function togglePresent(){
-    var on = document.body.classList.toggle("present");
-    presBtn.textContent = on ? "✕ Exit Presentation (P)" : "▶ Presentation Mode";
-  }
-  presBtn.addEventListener("click", togglePresent);
+
 
   /* ---------- REVEAL-ON-ENTER (IntersectionObserver) ---------- */
   function revealBatch(el, children, step){
@@ -749,11 +688,11 @@
       if (el.id === "manualStack") revealBatch(el, null, 220);
       if (el.id === "afterSteps") revealBatch(el, $$("#afterSteps .step"), 400);
       if (el.id === "customFlow") revealBatch(el, $$("#customFlow .row"), 380);
-      if (el.classList.contains("beanflow")) replayBeans(el);
+
     });
   }, {threshold: 0.35});
   ["heroFlow","manualStack","afterSteps","customFlow"].forEach(function(id){ io.observe(document.getElementById(id)); });
-  $$(".beanflow").forEach(function(b){ io.observe(b); });
+
 
   /* ---------- SECTION 02 : HERO FLOW ---------- */
   var heroItems = $$("#heroFlow .node, #heroFlow .arrow");
@@ -847,17 +786,7 @@
   });
   resetBtn.addEventListener("click", resetDemo);
 
-  /* ---------- SECTION 06 : BEAN FLOW ---------- */
-  function replayBeans(box){
-    var steps = Array.prototype.slice.call(box.querySelectorAll(".beanstep"));
-    steps.forEach(function(s, i){
-      s.classList.remove("show");
-      s.style.transitionDelay = (i*300)+"ms";
-    });
-    requestAnimationFrame(function(){
-      requestAnimationFrame(function(){ steps.forEach(function(s){ s.classList.add("show"); }); });
-    });
-  }
+
 
   /* ---------- SECTION 07 : CONDITION TOGGLES ---------- */
   var classTog = $("#classToggle"), beanTog = $("#beanToggle"),
