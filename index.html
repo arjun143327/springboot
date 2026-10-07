@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spring Boot Auto-Configuration — Interactive Seminar</title>
+<style>
+  /* ============ TOKENS ============ */
+  :root{
+    --bg:#FBF7F0;            /* warm off-white */
+    --bg-soft:#F4EEE3;
+    --ink:#12233F;           /* deep navy */
+    --ink-soft:#3D4E6B;
+    --blue:#1D5FD6;          /* strong blue */
+    --blue-deep:#0E3E9E;
+    --yellow:#FFC93C;        /* highlights */
+    --orange:#F26B21;        /* accents */
+    --green:#1E9E5A;         /* success */
+    --red:#D64541;           /* failure */
+    --line:#E4DCCB;
+    --card:#FFFFFF;
+    --shadow:0 10px 30px rgba(18,35,63,.10);
+    --shadow-lg:0 22px 60px rgba(18,35,63,.16);
+    --radius:18px;
+    --mono:"SFMono-Regular",ui-monospace,Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Avenir Next","Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif;
+    font-size:19px;
+    line-height:1.55;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--yellow);color:var(--ink)}
+
+  /* ============ TYPOGRAPHY ============ */
+  h1{font-size:clamp(2.6rem,6.5vw,4.8rem);line-height:1.05;letter-spacing:-.02em;font-weight:800}
+  h2{font-size:clamp(2rem,4.6vw,3.4rem);line-height:1.1;letter-spacing:-.015em;font-weight:800}
+  h3{font-size:clamp(1.3rem,2.4vw,1.8rem);font-weight:700}
+  p.lead{font-size:clamp(1.15rem,2vw,1.5rem);color:var(--ink-soft);max-width:52ch}
+  .mono{font-family:var(--mono)}
+  .kicker{
+    display:inline-flex;align-items:center;gap:.55rem;
+    font-size:.85rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--blue);margin-bottom:1.1rem;
+  }
+  .kicker::before{content:"";width:34px;height:3px;background:var(--yellow);border-radius:2px}
+  .hl{background:linear-gradient(transparent 62%,var(--yellow) 62%,var(--yellow) 96%,transparent 96%);padding:0 .08em}
+
+  /* ============ SECTION SCAFFOLD ============ */
+  section.slide{
+    min-height:100vh;min-height:100svh;
+    display:flex;align-items:center;justify-content:center;
+    padding:5.5rem 6vw 5rem;position:relative;
+    scroll-snap-align:start;
+  }
+  .wrap{width:min(1180px,100%);position:relative}
+  .center{text-align:center}
+  .center .lead{margin-left:auto;margin-right:auto}
+
+  /* dotted teaching-board grid backdrop */
+  section.slide::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(18,35,63,.055) 1.2px,transparent 1.2px);
+    background-size:30px 30px;
+    mask-image:linear-gradient(to bottom,transparent,black 12%,black 88%,transparent);
+    -webkit-mask-image:linear-gradient(to bottom,transparent,black 12%,black 88%,transparent);
+  }
+  section.slide>*{position:relative;z-index:1}
+  section.alt{background:var(--bg-soft)}
+
+  /* ============ NAV / PROGRESS ============ */
+  .progress{
+    position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:60;
+    display:flex;align-items:center;gap:1rem;
+    background:rgba(255,255,255,.92);border:1px solid var(--line);
+    padding:.55rem 1.1rem;border-radius:999px;box-shadow:var(--shadow);
+    backdrop-filter:blur(6px);
+  }
+  .progress .counter{font-family:var(--mono);font-weight:700;font-size:.95rem;color:var(--ink)}
+  .progress .counter span{color:var(--blue)}
+  .dots{display:flex;gap:.45rem}
+  .dots button{
+    width:11px;height:11px;border-radius:50%;border:none;cursor:pointer;
+    background:#D8CFBC;transition:all .25s;padding:0;
+  }
+  .dots button.on{background:var(--blue);transform:scale(1.35)}
+  .dots button:hover{background:var(--orange)}
+  .navbtns{display:flex;gap:.4rem}
+  .navbtns button{
+    width:32px;height:32px;border-radius:50%;border:1.5px solid var(--line);
+    background:#fff;cursor:pointer;font-size:.95rem;color:var(--ink);
+    display:flex;align-items:center;justify-content:center;transition:all .2s;
+  }
+  .navbtns button:hover{border-color:var(--blue);color:var(--blue)}
+  .presbtn{
+    position:fixed;top:18px;right:20px;z-index:60;
+    border:1.5px solid var(--line);background:rgba(255,255,255,.92);
+    padding:.5rem 1rem;border-radius:999px;cursor:pointer;
+    font-weight:700;font-size:.85rem;letter-spacing:.04em;color:var(--ink);
+    box-shadow:var(--shadow);transition:all .2s;
+  }
+  .presbtn:hover{border-color:var(--blue);color:var(--blue)}
+  body.present .progress,body.present .presbtn{opacity:0;pointer-events:none}
+  body.present{--scale-hint:1}
+
+  /* ============ BUTTONS ============ */
+  .btn{
+    display:inline-flex;align-items:center;gap:.6rem;
+    font:inherit;font-weight:700;font-size:1.05rem;
+    padding:.85rem 1.7rem;border-radius:14px;border:none;cursor:pointer;
+    background:var(--blue);color:#fff;box-shadow:0 6px 0 var(--blue-deep);
+    transition:transform .12s,box-shadow .12s,background .2s;
+  }
+  .btn:hover{transform:translateY(-2px)}
+  .btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--blue-deep)}
+  .btn.orange{background:var(--orange);box-shadow:0 6px 0 #B34A12}
+  .btn.orange:active{box-shadow:0 2px 0 #B34A12}
+  .btn.ghost{background:#fff;color:var(--ink);border:2px solid var(--ink);box-shadow:none}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .btn.small{font-size:.9rem;padding:.55rem 1.1rem;border-radius:10px;box-shadow:0 4px 0 var(--blue-deep)}
+
+  /* ============ CARDS / CODE ============ */
+  .card{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);
+  }
+  .codeblock{
+    background:#101E36;color:#E8EEFC;border-radius:14px;
+    padding:1.3rem 1.5rem;font-family:var(--mono);
+    font-size:clamp(.95rem,1.6vw,1.15rem);line-height:1.7;
+    box-shadow:var(--shadow-lg);text-align:left;overflow-x:auto;
+    border:1px solid #23385E;
+  }
+  .codeblock .kw{color:#7EB6FF}
+  .codeblock .ann{color:#FFC93C}
+  .codeblock .cm{color:#5F7496;font-style:italic}
+  .codeblock .str{color:#9CE8B8}
+  .tag{display:inline-block;font-family:var(--mono);font-size:.92em;font-weight:600;
+    background:#EAF1FE;color:var(--blue-deep);border:1px solid #C9DAF8;
+    padding:.14em .5em;border-radius:8px}
+
+  /* ============ 01 HOOK ============ */
+  .hook-q{
+    margin:2.2rem auto 0;max-width:760px;
+    background:#fff;border:2px solid var(--ink);border-radius:22px;
+    padding:2rem 2.4rem;box-shadow:8px 8px 0 var(--yellow);
+    font-size:clamp(1.35rem,2.8vw,2rem);font-weight:700;line-height:1.35;
+    transform:rotate(-.6deg);
+  }
+  .scrollhint{margin-top:3rem;color:var(--ink-soft);font-size:.95rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+  .scrollhint::after{content:"↓";display:block;font-size:1.5rem;margin-top:.3rem;animation:bob 1.6s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+
+  /* ============ 02 MENTAL MODEL ============ */
+  .flow{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:2rem}
+  .flow .node{
+    width:min(460px,100%);background:#fff;border:2px solid var(--ink);
+    border-radius:16px;padding:1.1rem 1.6rem;text-align:center;
+    box-shadow:var(--shadow);opacity:0;transform:translateY(26px) scale(.96);
+    transition:opacity .55s ease,transform .55s cubic-bezier(.2,.9,.3,1.2);
+  }
+  .flow .node.show{opacity:1;transform:none}
+  .flow .node b{display:block;font-size:1.25rem;letter-spacing:.06em}
+  .flow .node span{color:var(--ink-soft);font-size:.98rem}
+  .flow .arrow{
+    height:44px;display:flex;align-items:center;justify-content:center;
+    opacity:0;transition:opacity .4s;
+  }
+  .flow .arrow.show{opacity:1}
+  .flow .arrow svg{overflow:visible}
+  .flow .arrow path{stroke:var(--blue);stroke-width:3.5;fill:none;stroke-linecap:round;
+    stroke-dasharray:60;stroke-dashoffset:60}
+  .flow .arrow.show path{animation:draw .45s ease forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .node.dep{border-color:var(--orange);box-shadow:0 0 0 4px rgba(242,107,33,.12),var(--shadow)}
+  .node.auto{border-color:var(--blue);box-shadow:0 0 0 4px rgba(29,95,214,.12),var(--shadow)}
+  .node.comp{border-color:var(--green);box-shadow:0 0 0 4px rgba(30,158,90,.12),var(--shadow)}
+  .replay{margin-top:1.6rem;text-align:center}
+
+  /* ============ 03 BEFORE/AFTER ============ */
+  .vs{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2.4rem;align-items:stretch}
+  .vs .panel{padding:2rem 1.8rem;position:relative;overflow:hidden}
+  .vs .panel h3{margin-bottom:.4rem}
+  .pill{display:inline-block;font-size:.78rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+    padding:.28rem .8rem;border-radius:999px;margin-bottom:1rem}
+  .pill.red{background:#FBE4E3;color:var(--red)}
+  .pill.green{background:#E0F4E9;color:var(--green)}
+  .stack{display:flex;flex-direction:column;gap:.7rem;margin-top:1rem}
+  .stack .cfg{
+    background:var(--bg-soft);border:1.5px solid var(--line);border-radius:12px;
+    padding:.75rem 1.1rem;font-family:var(--mono);font-size:.98rem;font-weight:600;
+    opacity:0;transform:translateX(-18px);transition:all .5s ease;
+  }
+  .stack .cfg.show{opacity:1;transform:none}
+  .stack .cfg:nth-child(even){transform:translateX(18px)}
+  .aftersteps{display:flex;flex-direction:column;gap:0;margin-top:1rem}
+  .aftersteps .step{
+    background:#fff;border:2px solid var(--green);border-radius:12px;
+    padding:.75rem 1.1rem;font-weight:700;text-align:center;
+    opacity:0;transform:scale(.9);transition:all .45s cubic-bezier(.2,.9,.3,1.3);
+  }
+  .aftersteps .step.show{opacity:1;transform:none}
+  .aftersteps .conn{height:26px;display:flex;justify-content:center;color:var(--green);font-weight:900;font-size:1.1rem}
+  .vstag{position:absolute;top:1.2rem;right:1.4rem;font-family:var(--mono);font-size:.8rem;color:#B7AD97}
+
+  /* ============ 04 @SpringBootApplication ============ */
+  .split{display:grid;grid-template-columns:1.05fr .95fr;gap:2.4rem;align-items:center;margin-top:2rem}
+  .combine{display:flex;flex-direction:column;align-items:center;gap:0}
+  .annbtn{
+    width:min(420px,100%);font:inherit;font-family:var(--mono);font-weight:700;
+    font-size:clamp(1.05rem,2vw,1.3rem);text-align:left;cursor:pointer;
+    background:#fff;border:2px solid var(--line);border-radius:14px;
+    padding:.9rem 1.4rem;transition:all .25s;position:relative;
+  }
+  .annbtn small{display:block;font-family:inherit;font-size:.85rem;color:var(--ink-soft);font-weight:500;margin-top:.15rem}
+  .annbtn:hover{border-color:var(--blue)}
+  .annbtn.on{border-color:var(--blue);background:#EAF1FE;box-shadow:0 0 0 4px rgba(29,95,214,.15)}
+  .annbtn .chip{
+    position:absolute;top:-11px;left:14px;background:var(--yellow);color:var(--ink);
+    font-size:.68rem;font-weight:800;letter-spacing:.08em;padding:.12rem .55rem;border-radius:6px;
+    opacity:0;transform:translateY(4px);transition:all .25s;font-family:inherit;
+  }
+  .annbtn.on .chip{opacity:1;transform:none}
+  .plus{font-weight:900;color:#B7AD97;font-size:1.3rem;margin:.35rem 0}
+  .eqline{font-weight:900;color:var(--blue);font-size:1.4rem;margin:.8rem 0}
+  .annexplain{
+    margin-top:1.2rem;background:#fff;border-left:6px solid var(--yellow);
+    border-radius:0 12px 12px 0;padding:1rem 1.4rem;font-size:1.1rem;font-weight:600;
+    min-height:4.2rem;display:flex;align-items:center;box-shadow:var(--shadow);
+  }
+
+  /* ============ 05 LIVE DEMO ============ */
+  .demo{
+    margin-top:2rem;display:grid;grid-template-columns:1fr auto 1fr;gap:1.4rem;align-items:stretch;
+  }
+  .demo .col{padding:1.4rem 1.5rem}
+  .demo .col h4{font-size:.85rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:.9rem}
+  .depslot,.compslot{
+    border:2px dashed #C9BFA8;border-radius:14px;min-height:120px;
+    display:flex;flex-direction:column;gap:.6rem;justify-content:center;padding:1rem;transition:all .3s;
+  }
+  .depchip{
+    background:#FDF0E6;border:2px solid var(--orange);color:#8A3A0B;border-radius:12px;
+    padding:.7rem 1rem;font-family:var(--mono);font-weight:700;font-size:clamp(.85rem,1.5vw,1.05rem);
+    text-align:center;animation:pop .5s cubic-bezier(.2,.9,.3,1.4);
+  }
+  @keyframes pop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+  .empty-note{color:#A99F87;font-size:.95rem;text-align:center;font-style:italic}
+  .engine{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.9rem;
+    min-width:230px;padding:1.4rem 1.2rem;text-align:center;
+  }
+  .engine .gear{font-size:3rem;line-height:1;transition:transform .3s}
+  .engine.thinking .gear{animation:spin 1.2s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .engine .statetext{font-weight:700;font-size:1.02rem;min-height:3.2em}
+  .compchip{
+    background:#E7F6EE;border:2px solid var(--green);color:#0F5A34;border-radius:12px;
+    padding:.7rem 1rem;font-family:var(--mono);font-weight:700;text-align:center;
+    animation:pop .5s cubic-bezier(.2,.9,.3,1.4);
+  }
+  .democaption{
+    margin-top:1.6rem;text-align:center;font-size:clamp(1.05rem,2vw,1.35rem);font-weight:700;
+    opacity:0;transform:translateY(10px);transition:all .5s;
+  }
+  .democaption.show{opacity:1;transform:none}
+  .democaption .mono{background:#EAF1FE;padding:.1em .45em;border-radius:8px}
+  .demobtns{margin-top:1.4rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+  .badge-sim{
+    display:inline-block;font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    background:var(--ink);color:var(--yellow);padding:.25rem .7rem;border-radius:6px;vertical-align:middle;margin-left:.6rem;
+  }
+
+  /* ============ 06 BEAN ============ */
+  .beanflow{display:flex;align-items:center;justify-content:center;gap:1.2rem;margin-top:2rem;flex-wrap:wrap}
+  .beanstep{background:#fff;border:2px solid var(--ink);border-radius:16px;padding:1.2rem 1.6rem;
+    text-align:center;font-weight:700;font-size:1.1rem;box-shadow:var(--shadow);
+    opacity:0;transform:translateY(20px);transition:all .5s ease;min-width:170px}
+  .beanstep.show{opacity:1;transform:none}
+  .beanstep small{display:block;font-weight:500;color:var(--ink-soft);font-size:.9rem;margin-top:.2rem}
+  .beanarrow{color:var(--blue);font-size:1.6rem;font-weight:900}
+  .vsnote{
+    display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2.2rem;
+  }
+  .vsnote .card{padding:1.6rem 1.8rem}
+  .vsnote .card h3{margin-bottom:.6rem}
+  .bigX{color:var(--red);font-weight:900}
+
+  /* ============ 07 CONDITIONALS ============ */
+  .condgrid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2.2rem}
+  .cond{padding:1.8rem 1.8rem 1.6rem;display:flex;flex-direction:column;gap:1rem}
+  .cond .q{font-weight:700;font-size:1.1rem}
+  .cond .ex{font-family:var(--mono);background:#101E36;color:#FFC93C;border-radius:10px;padding:.7rem 1rem;font-size:.95rem}
+  .switchrow{display:flex;align-items:center;justify-content:space-between;gap:1rem;
+    background:var(--bg-soft);border-radius:12px;padding:.8rem 1.1rem;font-weight:700}
+  .switch{position:relative;width:64px;height:34px;flex:none}
+  .switch input{opacity:0;width:100%;height:100%;position:absolute;cursor:pointer;z-index:2;margin:0}
+  .switch .track{position:absolute;inset:0;background:#CFC5AE;border-radius:999px;transition:background .25s}
+  .switch .knob{position:absolute;top:4px;left:4px;width:26px;height:26px;background:#fff;border-radius:50%;
+    box-shadow:0 2px 6px rgba(0,0,0,.25);transition:transform .25s cubic-bezier(.2,.9,.3,1.3)}
+  .switch input:checked~.track{background:var(--green)}
+  .switch input:checked~.knob{transform:translateX(30px)}
+  .verdict{border-radius:12px;padding:.9rem 1.1rem;font-weight:800;text-align:center;font-size:1.05rem;
+    transition:all .3s}
+  .verdict.ok{background:#E0F4E9;color:#0F5A34;border:2px solid var(--green)}
+  .verdict.no{background:#FBE4E3;color:#8F2420;border:2px solid var(--red)}
+
+  /* ============ 08 CUSTOM ============ */
+  .customflow{display:flex;flex-direction:column;gap:0;align-items:center;margin-top:2rem}
+  .customflow .row{display:flex;align-items:center;gap:1.2rem;width:min(640px,100%);
+    opacity:0;transform:translateY(18px);transition:all .45s ease}
+  .customflow .row.show{opacity:1;transform:none}
+  .customflow .ann{width:min(300px,48%);font-family:var(--mono);font-weight:700;text-align:center;
+    background:#fff;border:2px solid var(--blue);border-radius:12px;padding:.8rem 1rem;font-size:clamp(.85rem,1.6vw,1.05rem)}
+  .customflow .desc{flex:1;font-weight:600;color:var(--ink-soft)}
+  .customflow .down{color:var(--blue);font-weight:900;font-size:1.3rem;margin:.4rem 0 .4rem 0;width:min(300px,48%);text-align:center}
+
+  /* ============ 09 EXCLUDE ============ */
+  .excl{display:grid;grid-template-columns:1.1fr .9fr;gap:2.4rem;align-items:center;margin-top:2rem}
+  .exstate{padding:1.8rem;text-align:center}
+  .exstate .big{font-size:1.3rem;font-weight:800;margin:.6rem 0 1rem}
+  .exstate .status{display:inline-block;font-weight:900;letter-spacing:.1em;padding:.5rem 1.3rem;border-radius:12px;font-size:1.05rem;transition:all .3s}
+  .exstate .status.on{background:#E0F4E9;color:#0F5A34;border:2px solid var(--green)}
+  .exstate .status.off{background:#FBE4E3;color:#8F2420;border:2px solid var(--red)}
+  .exlist{text-align:left;margin-top:1.2rem;font-family:var(--mono);font-size:.95rem}
+  .exlist div{padding:.45rem .2rem;border-bottom:1px dashed var(--line)}
+  .exlist .skip{color:var(--red);text-decoration:line-through;font-weight:700}
+
+  /* ============ 10 DEBUG ============ */
+  .debugwrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:2.4rem;align-items:start;margin-top:2rem}
+  .terminal{background:#0C1830;color:#DDE7FA;border-radius:14px;padding:1.2rem 1.4rem;
+    font-family:var(--mono);font-size:clamp(.9rem,1.5vw,1.05rem);box-shadow:var(--shadow-lg);border:1px solid #23385E}
+  .terminal .cmd{color:#fff}
+  .terminal .cmd::before{content:"$ ";color:#7EB6FF}
+  .report{background:#fff;border:2px solid var(--ink);border-radius:14px;padding:1.4rem 1.6rem;
+    font-family:var(--mono);font-size:clamp(.88rem,1.5vw,1.02rem);box-shadow:var(--shadow);min-height:230px}
+  .report h4{font-family:inherit;font-size:1rem;letter-spacing:.1em;border-bottom:2px solid var(--line);padding-bottom:.6rem;margin-bottom:.9rem;color:var(--ink)}
+  .report .ln{opacity:0;transform:translateX(-8px);transition:all .4s ease;padding:.28rem 0}
+  .report .ln.show{opacity:1;transform:none}
+  .report .ok{color:var(--green);font-weight:700}
+  .report .why{color:var(--ink-soft)}
+  .cursorblink{display:inline-block;width:9px;height:1.1em;background:#7EB6FF;vertical-align:text-bottom;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  /* ============ 11 RECAP ============ */
+  .recap{display:grid;grid-template-columns:repeat(4,1fr);gap:1.4rem;margin-top:2.4rem}
+  .rcard{padding:1.7rem 1.5rem;position:relative;overflow:hidden}
+  .rcard .num{font-family:var(--mono);font-size:2.6rem;font-weight:800;color:var(--yellow);
+    text-shadow:1.5px 1.5px 0 var(--ink);line-height:1}
+  .rcard h3{margin:.7rem 0 .5rem;font-size:1.25rem}
+  .rcard p{color:var(--ink-soft);font-size:1rem}
+  .remember{
+    margin:2.8rem auto 0;max-width:820px;text-align:center;
+    background:var(--ink);color:#fff;border-radius:22px;padding:2rem 2.4rem;
+    box-shadow:10px 10px 0 var(--yellow);
+  }
+  .remember .lbl{color:var(--yellow);font-weight:800;letter-spacing:.2em;text-transform:uppercase;font-size:.8rem}
+  .remember p{font-size:clamp(1.2rem,2.4vw,1.6rem);font-weight:700;margin-top:.5rem}
+  footer{padding:2rem;text-align:center;color:var(--ink-soft);font-size:.9rem}
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:900px){
+    .vs,.split,.condgrid,.vsnote,.excl,.debugwrap{grid-template-columns:1fr}
+    .demo{grid-template-columns:1fr}
+    .engine{min-width:0}
+    .recap{grid-template-columns:1fr 1fr}
+    .beanarrow{transform:rotate(90deg)}
+    .beanflow{flex-direction:column}
+  }
+  @media (max-width:560px){.recap{grid-template-columns:1fr}.progress{bottom:12px;padding:.45rem .8rem}}
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  }
+</style>
+</head>
+<body>
+
+<button class="presbtn" id="presBtn">▶ Presentation Mode</button>
+
+<!-- ============ SECTION 01 — HOOK ============ -->
+<section class="slide" id="s1">
+  <div class="wrap center">
+    <div class="kicker" style="justify-content:center">Unit 4 · Full Stack Web Development</div>
+    <h1>Spring Boot<br><span class="hl">Auto-Configuration</span></h1>
+    <p class="lead" style="margin-top:1.2rem">How Spring Boot reduces manual configuration</p>
+    <div class="hook-q">“What if Spring Boot could figure out <span class="hl">part of the configuration</span> for us?”</div>
+    <div class="scrollhint">Scroll to begin</div>
+  </div>
+</section>
+
+<!-- ============ SECTION 02 — MENTAL MODEL ============ -->
+<section class="slide alt" id="s2">
+  <div class="wrap center">
+    <div class="kicker" style="justify-content:center">Section 02 · The One Big Idea</div>
+    <h2>Spring Boot checks the <span class="hl">classpath</span></h2>
+    <p class="lead" style="margin:1rem auto 0">…and automatically configures the Spring components that match the dependencies it finds.</p>
+    <div class="flow" id="heroFlow">
+      <div class="node dep"><b>① DEPENDENCY</b><span>A library used by the project</span></div>
+      <div class="arrow"><svg width="26" height="40" viewBox="0 0 26 40"><path d="M13 2 v26 M4 22 L13 34 L22 22"/></svg></div>
+      <div class="node"><b>② CLASSPATH</b><span>The available libraries</span></div>
+      <div class="arrow"><svg width="26" height="40" viewBox="0 0 26 40"><path d="M13 2 v26 M4 22 L13 34 L22 22"/></svg></div>
+      <div class="node auto"><b>③ AUTO-CONFIGURATION</b><span>Spring Boot checks what is available</span></div>
+      <div class="arrow"><svg width="26" height="40" viewBox="0 0 26 40"><path d="M13 2 v26 M4 22 L13 34 L22 22"/></svg></div>
+      <div class="node comp"><b>④ SPRING COMPONENTS</b><span>Required beans are configured</span></div>
+    </div>
+    <div class="replay"><button class="btn ghost small" id="replayFlow">↺ Replay the flow</button></div>
+  </div>
+</section>
+
+<!-- ============ SECTION 03 — WHY ============ -->
+<section class="slide" id="s3">
+  <div class="wrap">
+    <div class="kicker">Section 03 · Why do we need it?</div>
+    <h2 class="center" style="text-align:center">From <span class="bigX">manual setup</span> to <span style="color:var(--blue)">faster development</span></h2>
+    <div class="vs">
+      <div class="card panel">
+        <span class="vstag">BEFORE</span>
+        <span class="pill red">Before</span>
+        <h3>Manual Configuration</h3>
+        <p style="color:var(--ink-soft)">Every piece of setup is written by hand.</p>
+        <div class="stack" id="manualStack">
+          <div class="cfg">⚙ Configuration</div>
+          <div class="cfg">⚙ Component setup</div>
+          <div class="cfg">⚙ Database setup</div>
+          <div class="cfg">⚙ Bean configuration</div>
+        </div>
+      </div>
+      <div class="card panel">
+        <span class="vstag">AFTER</span>
+        <span class="pill green">After</span>
+        <h3>Spring Boot Auto-Configuration</h3>
+        <p style="color:var(--ink-soft)">Add a dependency — the matching setup arrives with it.</p>
+        <div class="aftersteps" id="afterSteps">
+          <div class="step">Add dependency</div>
+          <div class="conn">↓</div>
+          <div class="step">Spring Boot detects it</div>
+          <div class="conn">↓</div>
+          <div class="step">Required configuration is applied</div>
+        </div>
+      </div>
+    </div>
+    <p class="center" style="text-align:center;margin-top:1.8rem;font-weight:700;font-size:1.2rem">
+      Less manual setup <span style="color:var(--orange)">→</span> faster development
+    </p>
+  </div>
+</section>
+
+<!-- ============ SECTION 04 — @SpringBootApplication ============ -->
+<section class="slide alt" id="s4">
+  <div class="wrap">
+    <div class="kicker">Section 04 · The entry point</div>
+    <h2>One annotation, <span class="hl">three jobs</span></h2>
+    <div class="split">
+      <div class="codeblock">
+<span class="ann">@SpringBootApplication</span>
+<span class="kw">public class</span> DemoApplication {
+    <span class="kw">public static void</span> main(String[] args) {
+        SpringApplication.run(
+            DemoApplication.class, args);
+    }
+}</div>
+      <div>
+        <div class="combine">
+          <button class="annbtn" data-ex="Used as a source of Spring configuration.">@Configuration<small>Java-based configuration source</small><span class="chip">CLICK ME</span></button>
+          <div class="plus">+</div>
+          <button class="annbtn" data-ex="Enables Spring Boot's automatic configuration.">@EnableAutoConfiguration<small>The magic switch for auto-configuration</small><span class="chip">CLICK ME</span></button>
+          <div class="plus">+</div>
+          <button class="annbtn" data-ex="Scans for Spring components.">@ComponentScan<small>Finds your @Component classes</small><span class="chip">CLICK ME</span></button>
+          <div class="eqline">= @SpringBootApplication</div>
+        </div>
+        <div class="annexplain" id="annExplain">Click each annotation to see what it contributes.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 05 — LIVE DEMO ============ -->
+<section class="slide" id="s5">
+  <div class="wrap center">
+    <div class="kicker" style="justify-content:center">Section 05 · Live Demo</div>
+    <h2>Let’s See What <span class="hl">Actually Happens</span></h2>
+    <p class="lead" style="margin:.8rem auto 0">An empty project. One click. Watch Spring Boot react.</p>
+    <div class="demo">
+      <div class="card col">
+        <h4>Project Dependencies</h4>
+        <div class="depslot" id="depSlot">
+          <div class="empty-note">No JPA dependency</div>
+        </div>
+      </div>
+      <div class="card engine" id="engine">
+        <div class="gear">⚙️</div>
+        <div class="statetext" id="engineText">Waiting…<br>click the button →</div>
+      </div>
+      <div class="card col">
+        <h4>Spring Components</h4>
+        <div class="compslot" id="compSlot">
+          <div class="empty-note">Nothing JPA-specific</div>
+        </div>
+      </div>
+    </div>
+    <div class="demobtns">
+      <button class="btn orange" id="addJpaBtn">＋ Add JPA Dependency</button>
+      <button class="btn ghost" id="resetDemoBtn">↺ Reset demo</button>
+    </div>
+    <div class="democaption" id="demoCaption">
+      Spring Boot detects the JPA dependency and automatically configures these Spring components:
+      <span class="mono">DataSource</span> &amp; <span class="mono">EntityManagerFactory</span>
+      <span class="badge-sim">Simulated demo</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 06 — SPRING BEAN ============ -->
+<section class="slide alt" id="s6">
+  <div class="wrap">
+    <div class="kicker">Section 06 · Building blocks</div>
+    <h2>What is a <span class="hl">Spring Bean</span>?</h2>
+    <div class="vsnote">
+      <div class="card">
+        <h3>Normally, we create objects ourselves</h3>
+        <div class="codeblock" style="margin-top:.8rem"><span class="kw">Car</span> car = <span class="kw">new</span> <span class="ann">Car</span>();</div>
+        <p style="margin-top:.8rem;color:var(--ink-soft)">You call <b>new</b>, you manage the object's life.</p>
+      </div>
+      <div class="card">
+        <h3>With Spring, the container does it</h3>
+        <div class="beanflow" style="margin-top:.4rem;flex-direction:column;align-items:stretch">
+          <div class="beanstep show" style="opacity:1;transform:none">Spring Container<small>the manager</small></div>
+          <div class="beanarrow" style="transform:rotate(90deg);text-align:center">→</div>
+          <div class="beanstep show" style="opacity:1;transform:none">Creates the object<small>instead of your code</small></div>
+          <div class="beanarrow" style="transform:rotate(90deg);text-align:center">→</div>
+          <div class="beanstep show" style="opacity:1;transform:none">Manages the object<small>lifecycle included</small></div>
+          <div class="beanarrow" style="transform:rotate(90deg);text-align:center">→</div>
+          <div class="beanstep show" style="opacity:1;transform:none;background:#E7F6EE;border-color:var(--green)">Spring Bean<small>the managed object</small></div>
+        </div>
+      </div>
+    </div>
+    <p class="center" style="text-align:center;margin-top:1.8rem;font-size:1.15rem;max-width:56ch;margin-left:auto;margin-right:auto">
+      A <b>Spring Bean</b> is an object <b>created and managed by the Spring container</b>.
+      The object still exists — the difference is <span class="hl">who manages its creation</span>: Spring, not you.
+    </p>
+  </div>
+</section>
+
+<!-- ============ SECTION 07 — CONDITIONALS ============ -->
+<section class="slide" id="s7">
+  <div class="wrap">
+    <div class="kicker">Section 07 · Not blind</div>
+    <h2 class="center" style="text-align:center">Spring Boot Doesn’t Configure <span class="hl">Everything Blindly</span></h2>
+    <div class="condgrid">
+      <div class="card cond">
+        <span class="pill" style="background:#EAF1FE;color:var(--blue)">Condition 01</span>
+        <h3 class="mono">@ConditionalOnClass</h3>
+        <p class="q">Is the required class available?</p>
+        <div class="ex">@ConditionalOnClass(DataSource.class)</div>
+        <div class="switchrow">
+          <span>DataSource.class on classpath</span>
+          <span class="switch"><input type="checkbox" id="classToggle" checked><span class="track"></span><span class="knob"></span></span>
+        </div>
+        <div class="verdict ok" id="classVerdict">🟢 Configuration can apply</div>
+      </div>
+      <div class="card cond">
+        <span class="pill" style="background:#EAF1FE;color:var(--blue)">Condition 02</span>
+        <h3 class="mono">@ConditionalOnMissingBean</h3>
+        <p class="q">Is the bean already available?</p>
+        <div class="ex">@ConditionalOnMissingBean</div>
+        <div class="switchrow">
+          <span>A custom bean already exists</span>
+          <span class="switch"><input type="checkbox" id="beanToggle"><span class="track"></span><span class="knob"></span></span>
+        </div>
+        <div class="verdict ok" id="beanVerdict">🟢 Configuration can create it</div>
+      </div>
+    </div>
+    <p class="center" style="text-align:center;margin-top:1.6rem;font-weight:700;font-size:1.15rem">Flip the switches — auto-configuration only applies <span class="hl">when the conditions are met</span>.</p>
+  </div>
+</section>
+
+<!-- ============ SECTION 08 — CUSTOM AUTO-CONFIG ============ -->
+<section class="slide alt" id="s8">
+  <div class="wrap center">
+    <div class="kicker" style="justify-content:center">Section 08 · Your own rules</div>
+    <h2>Writing a <span class="hl">Custom Auto-Configuration</span></h2>
+    <p class="lead" style="margin:.8rem auto 0">Just three annotations — each one answers one question.</p>
+    <div class="customflow" id="customFlow">
+      <div class="row"><div class="ann">@Configuration</div><div class="desc">→ “This is configuration.”</div></div>
+      <div class="down">↓</div>
+      <div class="row"><div class="ann">@ConditionalOnClass(DataSource.class)</div><div class="desc">→ “Check if the required class exists.”</div></div>
+      <div class="down">↓</div>
+      <div class="row"><div class="ann">@Bean<br>@ConditionalOnMissingBean</div><div class="desc">→ “Check if the bean already exists — only then create it.”</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 09 — EXCLUDE ============ -->
+<section class="slide" id="s9">
+  <div class="wrap">
+    <div class="kicker">Section 09 · Developer control</div>
+    <h2>You can always say <span class="hl">“no, thanks”</span></h2>
+    <div class="excl">
+      <div class="codeblock"><span class="ann">@SpringBootApplication</span>(
+    exclude = {
+        DataSourceAutoConfiguration.<span class="kw">class</span>
+    }
+)</div>
+      <div class="card exstate">
+        <h3>DataSourceAutoConfiguration</h3>
+        <div class="big" id="exLabel">Auto-configuration</div>
+        <span class="status on" id="exStatus">🟢 ACTIVE</span>
+        <div class="exlist" id="exList">
+          <div>✓ JdbcTemplateAutoConfiguration</div>
+          <div>✓ HibernateJpaAutoConfiguration</div>
+          <div id="exRow">✓ DataSourceAutoConfiguration</div>
+        </div>
+        <div style="margin-top:1.4rem"><button class="btn small" id="exBtn">Exclude it</button></div>
+      </div>
+    </div>
+    <p class="center" style="text-align:center;margin-top:1.6rem;font-weight:700;font-size:1.15rem">Auto-configuration is convenient — <span class="hl">but the developer still has control</span>.</p>
+  </div>
+</section>
+
+<!-- ============ SECTION 10 — DEBUG ============ -->
+<section class="slide alt" id="s10">
+  <div class="wrap">
+    <div class="kicker">Section 10 · Look under the hood</div>
+    <h2>See it think: <span class="hl mono" style="font-size:.85em">--debug</span></h2>
+    <div class="debugwrap">
+      <div>
+        <div class="terminal">
+          <div class="cmd">java -jar demo.jar --debug</div>
+          <div style="margin-top:1rem;color:#7EB6FF" id="termOut"><span class="cursorblink"></span></div>
+        </div>
+        <div style="margin-top:1.2rem"><button class="btn" id="debugBtn">▶ Run Debug</button></div>
+      </div>
+      <div class="report" id="debugReport">
+        <h4>AUTO-CONFIGURATION REPORT <span class="badge-sim">Teaching visualization</span></h4>
+        <div class="ln">▸ Report will appear here…</div>
+      </div>
+    </div>
+    <p style="margin-top:1.4rem;color:var(--ink-soft);max-width:60ch"><b>Why it matters:</b> <span class="mono">--debug</span> shows <i>why</i> each configuration was applied — so you’re never guessing what Spring Boot decided.</p>
+  </div>
+</section>
+
+<!-- ============ SECTION 11 — RECAP ============ -->
+<section class="slide" id="s11">
+  <div class="wrap center">
+    <div class="kicker" style="justify-content:center">Section 11 · Recap</div>
+    <h2>Four things to remember</h2>
+    <div class="recap">
+      <div class="card rcard"><div class="num">01</div><h3>Dependencies</h3><p>Spring Boot checks what libraries are available on the classpath.</p></div>
+      <div class="card rcard"><div class="num">02</div><h3>Auto-Configuration</h3><p>Spring Boot configures the matching Spring components for you.</p></div>
+      <div class="card rcard"><div class="num">03</div><h3>Conditions</h3><p>Configuration applies only when classes and beans conditions are met.</p></div>
+      <div class="card rcard"><div class="num">04</div><h3>Control</h3><p>Exclude what you don’t want, and use <span class="mono" style="font-size:.9em">--debug</span> to understand what happens.</p></div>
+    </div>
+    <div class="remember">
+      <div class="lbl">Remember</div>
+      <p>“Add the dependency, Spring Boot checks it, and configures what is needed.”</p>
+    </div>
+    <footer style="margin-top:2.5rem">Spring Boot Auto-Configuration · Interactive Seminar · Unit 4 FSWD</footer>
+  </div>
+</section>
+
+<!-- ============ PROGRESS / NAV ============ -->
+<nav class="progress" aria-label="Section progress">
+  <div class="navbtns"><button id="prevBtn" aria-label="Previous section">↑</button><button id="nextBtn" aria-label="Next section">↓</button></div>
+  <div class="counter"><span id="curNum">01</span> / 11</div>
+  <div class="dots" id="dots"></div>
+</nav>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(s){ return document.querySelector(s); };
+  var $$ = function(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); };
+  var wait = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+
+  /* ---------- SECTION LIST / PROGRESS ---------- */
+  var sections = $$("section.slide");
+  var dotsBox = $("#dots");
+
+  sections.forEach(function(sec, i){
+    var b = document.createElement("button");
+    b.setAttribute("aria-label", "Go to section " + (i+1));
+    b.addEventListener("click", function(){ goTo(i); });
+    dotsBox.appendChild(b);
+  });
+  var dots = $$("#dots button");
+
+  function pad(n){ return (n<10?"0":"")+n; }
+  function currentIndex(){
+    var mid = window.scrollY + window.innerHeight * 0.45;
+    var best = 0;
+    sections.forEach(function(s, i){ if (s.offsetTop <= mid) best = i; });
+    return best;
+  }
+  function paintProgress(){
+    var i = currentIndex();
+    dots.forEach(function(d, j){ d.classList.toggle("on", j===i); });
+    $("#curNum").textContent = pad(i+1);
+  }
+  function goTo(i){
+    i = Math.max(0, Math.min(sections.length-1, i));
+    sections[i].scrollIntoView({behavior:"smooth"});
+  }
+  $("#prevBtn").addEventListener("click", function(){ goTo(currentIndex()-1); });
+  $("#nextBtn").addEventListener("click", function(){ goTo(currentIndex()+1); });
+
+  window.addEventListener("scroll", paintProgress, {passive:true});
+  window.addEventListener("resize", paintProgress);
+  paintProgress();
+
+  /* ---------- KEYBOARD NAV ---------- */
+  var KEYS_NEXT = ["ArrowDown","PageDown"," ","ArrowRight"];
+  var KEYS_PREV = ["ArrowUp","PageUp","ArrowLeft"];
+  document.addEventListener("keydown", function(e){
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (e.key === "Escape" && document.body.classList.contains("present")){ togglePresent(); return; }
+    if (e.key.toLowerCase() === "p"){ togglePresent(); return; }
+    if (KEYS_NEXT.indexOf(e.key) > -1){ e.preventDefault(); goTo(currentIndex()+1); }
+    else if (KEYS_PREV.indexOf(e.key) > -1){ e.preventDefault(); goTo(currentIndex()-1); }
+    else if (e.key === "Home"){ e.preventDefault(); goTo(0); }
+    else if (e.key === "End"){ e.preventDefault(); goTo(sections.length-1); }
+  });
+
+  /* ---------- PRESENTATION MODE ---------- */
+  var presBtn = $("#presBtn");
+  function togglePresent(){
+    var on = document.body.classList.toggle("present");
+    presBtn.textContent = on ? "✕ Exit Presentation (P)" : "▶ Presentation Mode";
+  }
+  presBtn.addEventListener("click", togglePresent);
+
+  /* ---------- REVEAL-ON-ENTER (IntersectionObserver) ---------- */
+  function revealBatch(el, children, step){
+    var items = children || Array.prototype.slice.call(el.children);
+    items.forEach(function(c, i){ c.classList.remove("show"); c.style.transitionDelay = (i*step)+"ms"; });
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){ items.forEach(function(c){ c.classList.add("show"); }); });
+    });
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (!en.isIntersecting) return;
+      var el = en.target;
+      io.unobserve(el);
+      if (el.id === "heroFlow") replayHero();
+      if (el.id === "manualStack") revealBatch(el, null, 220);
+      if (el.id === "afterSteps") revealBatch(el, $$("#afterSteps .step"), 400);
+      if (el.id === "customFlow") revealBatch(el, $$("#customFlow .row"), 380);
+      if (el.classList.contains("beanflow")) replayBeans(el);
+    });
+  }, {threshold: 0.35});
+  ["heroFlow","manualStack","afterSteps","customFlow"].forEach(function(id){ io.observe(document.getElementById(id)); });
+  $$(".beanflow").forEach(function(b){ io.observe(b); });
+
+  /* ---------- SECTION 02 : HERO FLOW ---------- */
+  var heroItems = $$("#heroFlow .node, #heroFlow .arrow");
+  function replayHero(){
+    heroItems.forEach(function(n){ n.classList.remove("show"); n.style.transitionDelay = ""; });
+    heroItems.forEach(function(n, i){
+      setTimeout(function(){ n.classList.add("show"); }, 350 + i*420);
+    });
+  }
+  $("#replayFlow").addEventListener("click", replayHero);
+
+  /* ---------- SECTION 03 : replay stacks when re-entering ---------- */
+  new IntersectionObserver(function(en){
+    en.forEach(function(e){
+      if (e.isIntersecting){
+        revealBatch($("#manualStack"), null, 220);
+        revealBatch($("#afterSteps"), $$("#afterSteps .step"), 400);
+      }
+    });
+  }, {threshold:.3}).observe($("#s3"));
+
+  /* ---------- SECTION 04 : ANNOTATION CLICKS ---------- */
+  var explain = $("#annExplain");
+  $$(".annbtn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var wasOn = btn.classList.contains("on");
+      $$(".annbtn").forEach(function(b){ b.classList.remove("on"); });
+      if (!wasOn){
+        btn.classList.add("on");
+        explain.textContent = btn.getAttribute("data-ex");
+        explain.style.borderLeftColor = "#FFC93C";
+      } else {
+        explain.textContent = "Click each annotation to see what it contributes.";
+      }
+    });
+  });
+
+  /* ---------- SECTION 05 : LIVE DEMO ---------- */
+  var depSlot = $("#depSlot"), compSlot = $("#compSlot"),
+      engine = $("#engine"), engineText = $("#engineText"),
+      addBtn = $("#addJpaBtn"), resetBtn = $("#resetDemoBtn"),
+      caption = $("#demoCaption");
+  var demoBusy = false;
+
+  function setEngine(html, thinking){
+    engineText.innerHTML = html;
+    engine.classList.toggle("thinking", !!thinking);
+  }
+  function resetDemo(){
+    if (demoBusy) return;
+    depSlot.innerHTML = '<div class="empty-note">No JPA dependency</div>';
+    compSlot.innerHTML = '<div class="empty-note">Nothing JPA-specific</div>';
+    caption.classList.remove("show");
+    setEngine("Waiting…<br>click the button →", false);
+    addBtn.disabled = false;
+    addBtn.textContent = "＋ Add JPA Dependency";
+  }
+  addBtn.addEventListener("click", async function(){
+    if (demoBusy) return;
+    demoBusy = true;
+    addBtn.disabled = true;
+
+    // Step 2: dependency appears
+    depSlot.innerHTML = '<div class="depchip">spring-boot-starter-data-jpa</div>';
+    setEngine("Dependency detected ⚡", false);
+    await wait(900);
+
+    // Step 3: Spring Boot reacts
+    setEngine("Spring Boot is checking the available libraries…", true);
+    await wait(1600);
+    setEngine("JPA dependency detected ✓", false);
+    await wait(900);
+    setEngine("Applying matching auto-configuration…", true);
+    await wait(1400);
+    setEngine("Done ✓", false);
+
+    // Step 4: components appear
+    compSlot.innerHTML = "";
+    await wait(350);
+    var c1 = document.createElement("div");
+    c1.className = "compchip"; c1.textContent = "DataSource";
+    compSlot.appendChild(c1);
+    await wait(650);
+    var c2 = document.createElement("div");
+    c2.className = "compchip"; c2.textContent = "EntityManagerFactory";
+    compSlot.appendChild(c2);
+    await wait(500);
+    caption.classList.add("show");
+    addBtn.textContent = "✓ Dependency added";
+    demoBusy = false;
+  });
+  resetBtn.addEventListener("click", resetDemo);
+
+  /* ---------- SECTION 06 : BEAN FLOW ---------- */
+  function replayBeans(box){
+    var steps = Array.prototype.slice.call(box.querySelectorAll(".beanstep"));
+    steps.forEach(function(s, i){
+      s.classList.remove("show");
+      s.style.transitionDelay = (i*300)+"ms";
+    });
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){ steps.forEach(function(s){ s.classList.add("show"); }); });
+    });
+  }
+
+  /* ---------- SECTION 07 : CONDITION TOGGLES ---------- */
+  var classTog = $("#classToggle"), beanTog = $("#beanToggle"),
+      classVerdict = $("#classVerdict"), beanVerdict = $("#beanVerdict");
+  function paintConditions(){
+    if (classTog.checked){
+      classVerdict.className = "verdict ok";
+      classVerdict.textContent = "🟢 Configuration can apply";
+    } else {
+      classVerdict.className = "verdict no";
+      classVerdict.textContent = "🔴 Configuration does not apply";
+    }
+    if (beanTog.checked){
+      beanVerdict.className = "verdict no";
+      beanVerdict.textContent = "🔴 Don't create another one — custom bean wins";
+    } else {
+      beanVerdict.className = "verdict ok";
+      beanVerdict.textContent = "🟢 Configuration can create it";
+    }
+  }
+  classTog.addEventListener("change", paintConditions);
+  beanTog.addEventListener("change", paintConditions);
+  paintConditions();
+
+  /* ---------- SECTION 09 : EXCLUDE ---------- */
+  var exBtn = $("#exBtn"), exStatus = $("#exStatus"), exLabel = $("#exLabel"),
+      exRow = $("#exRow"), excluded = false;
+  exBtn.addEventListener("click", function(){
+    excluded = !excluded;
+    if (excluded){
+      exStatus.className = "status off"; exStatus.textContent = "🔴 SKIPPED";
+      exLabel.textContent = "EXCLUDE"; exLabel.style.color = "var(--red)";
+      exRow.className = "skip"; exRow.textContent = "✕ DataSourceAutoConfiguration skipped";
+      exBtn.textContent = "Bring it back"; exBtn.classList.add("orange");
+    } else {
+      exStatus.className = "status on"; exStatus.textContent = "🟢 ACTIVE";
+      exLabel.textContent = "Auto-configuration"; exLabel.style.color = "";
+      exRow.className = ""; exRow.textContent = "✓ DataSourceAutoConfiguration";
+      exBtn.textContent = "Exclude it"; exBtn.classList.remove("orange");
+    }
+  });
+
+  /* ---------- SECTION 10 : DEBUG ---------- */
+  var debugBtn = $("#debugBtn"), report = $("#debugReport"), termOut = $("#termOut");
+  var debugBusy = false;
+  var REPORT_LINES = [
+    ['ok',  '✓ JPA configuration detected'],
+    ['ok',  '✓ DataSource configuration considered'],
+    ['why', 'Why? → required dependency found: spring-boot-starter-data-jpa'],
+    ['ok',  '✓ EntityManagerFactory configured'],
+    ['why', 'Why? → @ConditionalOnClass passed, no custom bean present'],
+    ['why', '✕ DataSourceAutoConfiguration skipped — excluded by developer']
+  ];
+  debugBtn.addEventListener("click", async function(){
+    if (debugBusy) return;
+    debugBusy = true;
+    debugBtn.disabled = true;
+    report.innerHTML = '<h4>AUTO-CONFIGURATION REPORT <span class="badge-sim">Teaching visualization</span></h4>';
+    termOut.innerHTML = '<span class="cursorblink"></span>';
+
+    // type the command line
+    var cmd = "java -jar demo.jar --debug";
+    for (var i=0;i<=cmd.length;i++){
+      termOut.innerHTML = cmd.slice(0,i) + '<span class="cursorblink"></span>';
+      await wait(28);
+    }
+    await wait(400);
+    termOut.innerHTML = cmd + '<br><span style="color:#5F7496">Starting auto-configuration report…</span><br><span class="cursorblink"></span>';
+    await wait(700);
+
+    for (var j=0;j<REPORT_LINES.length;j++){
+      var ln = document.createElement("div");
+      ln.className = "ln " + REPORT_LINES[j][0];
+      ln.textContent = REPORT_LINES[j][1];
+      report.appendChild(ln);
+      await wait(60);
+      ln.classList.add("show");
+      await wait(320);
+    }
+    debugBtn.disabled = false;
+    debugBtn.textContent = "↺ Run again";
+    debugBusy = false;
+  });
+})();
+</script>
+</body>
+</html>
